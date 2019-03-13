@@ -344,7 +344,7 @@ function showDialog(parentDiv, liElement)
               }
               else
               {
-                addLi(parentDiv, $("#textEntered").val(), $("#nQualification").val());
+                addLiToList(parentDiv, $("#textEntered").val(), $("#nQualification").val());
               }
               $("#textEntered").val();
               $(this).dialog("close");
