@@ -37,7 +37,7 @@ button {
 #toolbar {
     z-index: 1000;
     height: auto;
-    width: 300px;
+    width: 450px;
     padding-left: 2em;
     background: var(--main-text-color);
 }
