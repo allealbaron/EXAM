@@ -128,7 +128,7 @@ function loadPage()
 		return pdfPage.render(renderContext);
 
 	}).then(function(){
-			//pdfContainer.css("width", pdfContainer.find(">:first-child").innerWidth());
+			pdfContainer.css("width", pdfContainer.find(">:first-child").innerWidth());
 			if (selections!=[])
 			{
 				drawSelectionsInPage();
@@ -343,7 +343,7 @@ function drawSelection(value) {
 			"z-index": 2
 		})
 		.append(createButtonsBar())
-		.append($("<textarea>").draggable({
+		.append($("<textarea>").addClass("textAreaSelection").draggable({
 			containment: newDiv
 		}).val(value.comments));
 }
