@@ -99,6 +99,7 @@ function loadFirstPage(pdfDocument_)
 function toggleSpinner(newValue)
 {
 	$(" .ui-spinner a.ui-spinner-button").css("display",newValue);
+
 }
 
 /**
@@ -282,6 +283,14 @@ function loadRightSlider()
 		trigger: $("#rubricPanelHandle"),
 		position: "right",
 		width: "50%",
+		shown: function()
+					{
+						$("#handleArrow").text("\u21D2");
+					},
+		hidden: function()
+					{
+						$("#handleArrow").text("\u21D0");
+					},
 		push: false
 	}).append(
 		JSON.parse(localStorage.getItem("rubric")));

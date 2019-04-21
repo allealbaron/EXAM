@@ -2,6 +2,7 @@
     --main-bg-color: #f1f99b;
     --main-text-color: #03473a;
     --main-opacity: 0.6;
+    --rubric-bg-color: #f5fbb7;
 }
 
 /* BEGIN TAGS */
@@ -192,12 +193,14 @@ button {
     float: right;
 }
 
-#rubricpanel
+.rubricpanel
 {
-    background-color:white;
-    float:right;
-    width:40%;
+    background-color:var(--rubric-bg-color);
+    border-color: var(--main-text-color);
+    border-width: 5px;
+    border-style: ridge;
     height:100%;
+    padding: 1em;
 }
 
 
