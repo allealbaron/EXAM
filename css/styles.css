@@ -21,6 +21,7 @@ button {
 
 /* BEGIN COMMON CLASSES */
 
+
 .floatingdiv {
     display: none;
 }
@@ -37,7 +38,7 @@ button {
 #toolbar {
     z-index: 1000;
     height: auto;
-    width: 450px;
+    width: 500px;
     padding-left: 2em;
     background: var(--main-text-color);
 }
@@ -190,3 +191,14 @@ button {
 .rightPos {
     float: right;
 }
+
+#rubricpanel
+{
+    background-color:white;
+    float:right;
+    width:40%;
+    height:100%;
+}
+
+
+ 

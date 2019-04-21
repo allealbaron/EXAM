@@ -2,10 +2,12 @@
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <head>
 	  <link rel="stylesheet" href="./css/styles.css"/>
+	  <link rel="stylesheet" href="./css/pdf_viewer.css" />
 	  <script src="./ext/jquery-3.3.1.min.js"></script>
 	  <script type="text/javascript" src="./js/visor.js"></script>
 	  <script type="text/javascript" src="./js/pdfjs/pdf.js"></script>
-	  
+	  <script type="text/javascript" src="./js/pdfjs/pdf_viewer.js"></script>
+	  <script src="./ext/jquery.slidereveal.min.js"></script>
 	
 	  <link rel="stylesheet" href="./ext/jquery-ui.css">
 	  <link rel="stylesheet" href="./ext/jquery-ui.theme.css"/>
@@ -13,6 +15,16 @@
 	  
    </head>
    <body>
+
+		<div id="slider">
+			<div class="handle" id="rubricPanelHandle">
+				<span style="left:-40;position:absolute;padding:10px;cursor: pointer;width:20px;">&lt;</span>
+			</div>
+			<div>
+				
+			</div>
+		</div>
+
    <div id="maindiv">
    	<h1>Corrector de exámenes</h1>
 		<div id="toolbar" >
@@ -22,11 +34,16 @@
 			<button id="saveIcon"></button>
 			<button id="zoomInIcon"></button>
 			<button id="zoomOutIcon"></button>
+			<button id="showRubric"></button>
 		</div>
 		<div id="pageContainer" class="marginated">
-			<canvas id="mycanvas"/>
+			<div>
+				<canvas id="mycanvas"></canvas>
+				<div id="textlayer" class="textlayer"></div>
+			</div>
 		</div>
 		<div id="selectionsContainer" class="marginated"></div>
-	</div>   
+	</div>
+ 
    </body>
  </html>

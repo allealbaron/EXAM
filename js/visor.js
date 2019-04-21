@@ -45,11 +45,13 @@ $(document)
 				});
 
 		loadToolbar();
+
+		loadRightSlider();
 		
 	});
 
-	/**
- * @description Sets up global variables
+/**
+* @description Sets up global variables
 */
 function setUp()
 {
@@ -125,7 +127,27 @@ function loadPage()
       viewport: viewport
     };
 
-		return pdfPage.render(renderContext);
+		return pdfPage.render(renderContext).promise.then(function() {
+			return pdfPage.getTextContent();
+	}).then(function(textContent) {
+			 
+			var pdfCanvas = $("#mycanvas"); 
+			var canvasOffset = pdfCanvas.offset();
+	
+			$("#textlayer").empty()
+										 .css({ left: canvasOffset.left + "px", 
+														top: canvasOffset.top + "px", 
+														height: pdfCanvas.get(0).height + "px", 
+														width: pdfCanvas.get(0).width + "px" });
+	
+			pdfjsLib.renderTextLayer({
+					textContent: textContent,
+					container: $("#textlayer").get(0),
+					viewport: viewport
+			});
+
+	});
+		
 
 	}).then(function(){
 			pdfContainer.css("width", pdfContainer.find(">:first-child").innerWidth());
@@ -137,6 +159,23 @@ function loadPage()
 		});
 	
 }
+
+function searchPage(doc, pageNumber, textToFind) {
+  return doc.getPage(pageNumber).then(function (page) {
+    return page.getTextContent();
+  }).then(function (content) {
+    // Search combined text content using regular expression
+    var text = content.items.map(function (i) { return i.str; }).join('');
+    var re = new RegExp("(.{0,20})" + textToFind + "(.{0,20})", "gi"), m;
+    var lines = [];
+    while (m = re.exec(text)) {
+      var line = (m[1] ? "..." : "") + m[0] + (m[2] ? "..." : "");
+      lines.push(line);
+    }
+    return {page: pageNumber, items: lines};
+  });
+}
+
 
 /**
  * @description Draws the selections belonging to the
@@ -218,6 +257,7 @@ function loadToolbar()
 	.createToolBarButton("Zoom in", "ui-icon-zoomin")
 	.click(function() {
 		zoomIn();
+		console.log(searchPage(pdfDocument, 1, "Trace"));
 	});
 	
 	$("#zoomOutIcon")
@@ -225,7 +265,27 @@ function loadToolbar()
 	.click(function() {
 		zoomOut();
 	});
+
+	$("#showRubric")
+	.createToolBarButton("Show/Hide rubric", "ui-icon-suitcase")
+	.click(function() {
+		$("#slider").slideReveal("toggle");
+	});
 		
+}
+
+/* Loads the right slider panel */
+function loadRightSlider()
+{
+
+	$("#slider").slideReveal({
+		trigger: $("#rubricPanelHandle"),
+		position: "right",
+		width: "50%",
+		push: false
+	}).append(
+		JSON.parse(localStorage.getItem("rubric")));
+
 }
 
 /**
@@ -268,7 +328,7 @@ function zoomIn(){
 	
 	currentScale = currentScale + zoomStep; 
 	loadPage();
-
+	
 }
 
 /**
