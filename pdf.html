@@ -1,0 +1,97 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+<head>
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/pdf_viewer.css" />
+    <script src="./ext/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="./js/pdfjs/pdf.js"></script>
+    <script src="./ext/jquery.slidereveal.min.js"></script>
+
+    <link rel="stylesheet" href="./ext/jquery-ui.css">
+    <link rel="stylesheet" href="./ext/jquery-ui.theme.css" />
+    <script src="./ext/jquery-ui.min.js"></script>
+
+
+</head>
+
+
+
+<script language="javascript">
+    $(document)
+        .ready(function () {
+            filePath = "./examen.pdf";
+
+            pdfjsLib.getDocument({
+                url: filePath
+            }).promise.then(function (pdf) {
+
+                pdf.getPage(7).then(function (page) {
+                    var scale = 1.5;
+                    var viewport = page.getViewport({
+                        scale: scale,
+                    });
+
+                    var canvas = document.getElementById('mycanvas');
+                    var context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    var renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext).then(function () {
+                        return page.getTextContent();
+                    }).then(function (textContent) {
+                        
+                        // PDF canvas
+                        var pdf_canvas = $("#mycanvas");
+
+                        
+                        // Canvas offset
+                        var canvas_offset = pdf_canvas.offset();
+
+                        // Canvas height
+                        var canvas_height = pdf_canvas.get(0).height;
+
+                        // Canvas width
+                        var canvas_width = pdf_canvas.get(0).width;
+
+                        $("#textlayer").empty();
+                        // Assign CSS to the text-layer element
+                        $("#textlayer").css({
+                            left: canvas_offset.left + 'px',
+                            top: canvas_offset.top + 'px',
+                            height: canvas_height + 'px',
+                            width: canvas_width + 'px'
+                        });
+
+                        // Pass the data to the method for rendering of text over the pdf canvas.
+                        pdfjsLib.renderTextLayer({
+                            textContent: textContent,
+                            container: $("#textlayer").get(0),
+                            viewport: viewport
+                        });
+                    });
+                });
+
+
+
+
+            });;
+
+
+        });
+</script>
+
+<body>
+        <div id="textlayeraaa" >
+                    <canvas id="mycanvas"></canvas>
+                    <div id="textlayer" class="textlayer"></div>
+                
+            </div>
+        
+</body>
+
+</html>
