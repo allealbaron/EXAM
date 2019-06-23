@@ -402,7 +402,7 @@ function loadRightSlider()
 		$(".rubricItem.rubricQuestion, .rubricItem.rubricSection").prepend(
 			function()
 			{
-				return createCheckBox(this);
+				return createRadioButton(this);
 			}
 		);
 		$(".rubricItem.rubricUnordered, .rubricItem.rubricOrdered").prepend(
@@ -411,16 +411,61 @@ function loadRightSlider()
 				return createCheckBox(this);
 			}
 		);
+		$("#slider").slideReveal("show");
+}
+
+function createRadioButton(item)
+{
+	return $("<input>")
+		.attr(
+			{
+					type:"radio",
+					name: "radioSelection",
+					id: "rdb" + $(item).attr("id"),
+			})
+		/*.change(function()
+		{
+			if (selectedSelection != null)
+			{
+				var selection = $("#" + selectedSelection);
+				var checkedItems = [];
+
+				if (selection.data("checks"))
+				{
+					checkedItems = selection.data("checks");
+				}
+				if (this.checked)
+				{
+					checkedItems.push($(this).attr("id"));
+				}
+				else
+				{
+					var valueToFind = $(this).attr("id");
+					var itemToRemove = 0;
+					$.each(checkedItems, function(i, val)
+					{
+						if (val == valueToFind)
+						{
+							itemToRemove = i;
+						}
+					});
+					checkedItems.splice(itemToRemove,1);
+				}
+				selection.data("checks",  checkedItems);
+			}
+		})*/;
 }
 
 /* Appends a check box to every item in the rubric */
 function createCheckBox(item)
 {
-	return $("<input/>")
+	return $("<input>")
 		.attr(
 			{
 					type:"checkbox",
-					id: "chk" + $(item).attr("id"),
+					name:"chk" + $(item).attr("id"),
+					value:"chk" + $(item).attr("id"),
+					id: "chk" + $(item).attr("id")
 			})
 		.change(function()
 		{
