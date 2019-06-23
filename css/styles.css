@@ -11,6 +11,7 @@ body {
     color: var(--main-text-color);
     background-color: var(--main-bg-color);
     padding: 0.5em;
+    position: relative;
 }
 
 button {
@@ -167,8 +168,9 @@ button {
     border-width: 0.5em;
     border-width: var(--main-text-color);
     border-style: dashed;
-    height: 200px;
-    width: 300px;
+    height: 300px;
+    width: 200px;
+    min-width: 8em;
     position: absolute;
 }
 
@@ -193,6 +195,11 @@ button {
     float: right;
 }
 
+.clicked
+{
+    background-color:#4CAF50;
+}
+
 .rubricpanel
 {
     background-color:var(--rubric-bg-color);
@@ -203,5 +210,22 @@ button {
     padding: 1em;
 }
 
+.pickColorInput
+{
+    padding:"0.1em";
+    width:"2em";
+    height:"4em";
+}
 
+.sliderClass
+{
+    width: "5em";
+    margin-right:"1.2em";
+    margin-top: "0.5em";
+}
+
+.spinnerQualification
+{
+    width: 2.5em;
+}
  
