@@ -144,13 +144,12 @@ button {
 
 
 
-
 .textAreaSelection
 {
     width:100%;
     max-width:100%;
-    height:55%;
-    max-height:90%;
+    height:100%;
+    resize: none;
 }
 
 
@@ -172,6 +171,8 @@ button {
     width: 200px;
     min-width: 8em;
     position: absolute;
+    overflow: hidden;
+
 }
 
 .topBar {
@@ -220,12 +221,57 @@ button {
 .sliderClass
 {
     width: "5em";
-    margin-right:"1.2em";
-    margin-top: "0.5em";
-}
+    margin-right: "1.2em";
+    margin-top: "0.3em"}
 
 .spinnerQualification
 {
     width: 2.5em;
 }
  
+.tableresults
+{
+  /*  border: 1px solid var(--main-text-color);/*/
+}
+
+table.tableresults th, table.tableresults td {
+	padding: 3px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--main-text-color) var(--rubric-bg-color);
+}
+
+div#slider 
+{
+    position: fixed; 
+    top: 0px; 
+    right: 0px; 
+    margin: 0px; 
+    padding: 20px 0px 0px; 
+    background: var(--main-bg-color); 
+    list-style: none; 
+    z-index:9999; 
+    width: 50%; 
+    height:100%;
+    border-radius:10px 0px 0px 10px;
+    border-color:var(--main-text-color);
+    border-width: 5px;
+    border-style: solid;
+}
+div#slider .nav-btn
+{
+    background:var(--main-text-color); 
+    border-radius:10px 0px 0px 10px; 
+    position:absolute; 
+    top:10px; 
+    left:-40px; 
+    width:40px; 
+    height:70px; 
+    display:block; 
+    cursor:pointer;
+}
+div#slider .nav-btn img
+{
+    margin:5px 0px 0px 0px;
+    width: 32px;
+}

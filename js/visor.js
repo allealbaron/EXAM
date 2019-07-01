@@ -10,6 +10,7 @@ var currentColor;
 var currentOpacity;
 var selectedSelection;
 var scrollPosition;
+var blnSliderShowed;
 
 (function( $ ) {
 
@@ -35,11 +36,10 @@ var scrollPosition;
 	* @description Create a div as a Selection
 	* @param value: JSON object with all the information required
 	*/
-
 	$.fn.drawSelection = function (value) {
 	   selectionCounter++;
 	   var newDiv = $("<div>");
-	   var initialState = (value.windowLocked=="on");
+	   var initialState = (value.windowLocked == "on");
 	   newDiv
 		   .draggable({
 			   containment: pdfContainer,
@@ -49,9 +49,12 @@ var scrollPosition;
 			   containment: pdfContainer,
 			   disabled: initialState,
 			   minWidth: "350",
+			   minHeight: "150",
 			   handles: "all"
 		   })
+		   .data("title", value.title)
 		   .data("checks", value.checks)
+		   .data("radio", value.radio)
 		   .data("windowLocked", value.windowLocked)
 		   .data("qualification", value.qualification)
 		   .data("backgroundColor", value.backgroundColor)
@@ -72,14 +75,36 @@ var scrollPosition;
 			   {
 				   selectedSelection = $(this).attr("id");
 				   $("#slider").find("input[type=checkbox]").prop("checked",false);
+				   $("#slider").find("input[type=radio]").prop("checked",false);
 				   $.each($(this).data("checks"), function(index, value) {
 					   $("#" + value).prop("checked", true);
 				   });
+				   var dataRatio = $(this).data("radio"); 
+				   if (dataRatio != null && dataRatio!= "")
+				   {
+					   $("#" + dataRatio).prop("checked",true);
+				   }
 		   })
+		   .append($("<span>")
+					   .text(value.title)
+					   .prop("contentEditable",true)
+					   .click(
+						   function()
+						   {
+							   $(this).focus();
+							})
+						.blur(
+							function()
+							{
+								$("#"+ selectedSelection).data("title", $(this).text());
+							}
+						)
+					)
 		   .append(createButtonsBar(value))
+		   .append($("<div>").addClass("divTextAreaSelection")
 		   .append($("<textarea>").addClass("textAreaSelection").draggable({
 			   containment: newDiv
-		   }).val(value.comments));
+		   }).val(value.comments)));
 
 		   this.append(newDiv);
 
@@ -143,7 +168,8 @@ function setUp()
 	currentColor= "rgb(241,249,155)";
 	scrollPosition = 0;
 	currentOpacity = bodyStyles.getPropertyValue("--main-opacity");
-	
+	blnSliderShowed = false;
+
 	filePath = "./examen.pdf";
   
 }
@@ -174,18 +200,18 @@ function loadFirstPage(pdfDocument_)
 
 }
 
-/*
-Shows/hides spinner (while a page is loading, is better to hide)
-*/
-function toggleSpinner(newValue)
+/**
+ * @description Shows/hides spinner (while a page is loading, is better to hide)
+ * @param displayValue new value to apply
+ */
+function toggleSpinner(displayValue)
 {
-	$(" .ui-spinner a.ui-spinner-button").css("display",newValue);
+	$(" .ui-spinner a.ui-spinner-button").css("display", displayValue);
 
 }
 
 /**
- * Loads the specified page
- * @param {integer} pageNum 
+ * @description Loads the specified page selected in inputPage
  */
 function loadPage()
 {
@@ -238,7 +264,12 @@ function loadPage()
 		});	
 }
 
-/* Searchs text in document*/
+/**
+ * @description Searchs text in document
+ * @param doc: doc which contains the text
+ * @param pageNumber: current page number
+ * @param textToFind: text to find
+ */
 function searchPage(doc, pageNumber, textToFind) {
   return doc.getPage(pageNumber).then(function (page) {
     return page.getTextContent();
@@ -254,13 +285,13 @@ function searchPage(doc, pageNumber, textToFind) {
   });
 }
 
-
 /**
  * @description Draws the selections belonging to the
  * current page
  */
 function drawSelectionsInPage() {
 
+	$("#pageContainer div.selection").remove();
 	$.each(selections, function(index, value) {
 		if (value.page == inputPage.val()) {
 			pdfContainer.drawSelection(value);
@@ -270,8 +301,8 @@ function drawSelectionsInPage() {
 }
 
 /**
- * @description Saves selections from page in the array
- * of selections
+ * @description Saves selections from page in the
+ * selections array
  */
 function saveSelectionsFromPage() {
 
@@ -297,19 +328,14 @@ function saveSelectionsFromPage() {
 				"top": $(this).position().top / currentScale
 			};
 			myObject.id = "selection" + i + "-" + inputPage.val();
-			myObject.title = $(this)
-				.find(".topBar")
-				.contents()
-				.filter(function() {
-					return this.nodeType == Node.TEXT_NODE;
-				})
-				.text();
+			myObject.title = $(this).data("title");
 			myObject.width = $(this).width() / currentScale;
 			myObject.height = $(this).height()/ currentScale;
 			myObject.backgroundColor = $(this).data("backgroundColor");
 			myObject.opacity = $(this).css("opacity");
 			myObject.comments = $(this).find("textArea:first").val();
 			myObject.checks = $(this).data("checks");
+			myObject.radio = $(this).data("radio");
 			myObject.windowLocked = $(this).data("windowLocked");
 			myObject.qualification = $(this).data("qualification");
 			selections.push(myObject);
@@ -360,145 +386,137 @@ function loadToolbar()
 	$("#showRubric")
 	.createToolBarButton("Show/Hide rubric", "ui-icon-suitcase")
 	.click(function() {
-		$("#slider").slideReveal("toggle");
+		sliderMovement(blnSliderShowed);
+		blnSliderShowed = !blnSliderShowed;
 	});
 		
 }
 
-/* Loads stored selections */
+/**
+ * @description Loads stored selections */
 function loadSelections()
 {
 	selections = JSON.parse(localStorage.getItem("selections"));
 	drawSelectionsInPage();
 }
 
-/* Saves selections */
+/**
+ * @description Saves selections */
 function saveSelections()
 {
 	saveSelectionsFromPage();
 	localStorage.setItem("selections", JSON.stringify(selections));
 }
 
-/* Loads the right slider panel */
+/**
+ * @description Changes right slider position
+ * @param {boolean} expand: if true, expands the slider. If false, the
+ * slider is collapsed.
+ */
+function sliderMovement(expand)
+{
+		
+		var newMargin = 0;
+		var newImg = "ext/images/rightArrow.png";
+		var newAlt = "Abrir";
+	
+		if (expand)
+		{
+			newMargin = "-800px";
+			newImg = "ext/images/leftArrow.png";
+			newAlt = "Cerrar";
+		}
+
+		$("#slider").stop().animate({"margin-right": newMargin});
+		$("#pullimg").prop({"src":newImg, "alt":newAlt});
+
+}
+
+/**
+ * @description Loads the right slider panel
+ */
 function loadRightSlider()
 {
 
-	$("#slider").slideReveal({
-		trigger: $("#rubricPanelHandle"),
-		position: "right",
-		width: "50%",
-		shown: function()
-					{
-						$("#handleArrow").text("\u21D2");
-					},
-		hidden: function()
-					{
-						$("#handleArrow").text("\u21D0");
-					},
-		push: false
-	}).append(
+	$("#pull").bind("click", function(){
+		sliderMovement(blnSliderShowed);
+		blnSliderShowed = !blnSliderShowed;
+	
+	});
+	
+	$("#slider").append(
 		JSON.parse(localStorage.getItem("rubric")
 		));
+		
 		$(".rubricItem.rubricQuestion, .rubricItem.rubricSection").prepend(
 			function()
 			{
-				return createRadioButton(this);
+				return $("<input>")
+						.prop(
+						{
+							type:"radio",
+							name: "radioSelection",
+							id: "rdb" + $(this).prop("id"),
+						})
+						.change(function()
+						{
+							if (selectedSelection != null)
+							{
+								$("#" + selectedSelection).data("radio",  $(this).prop("id"));
+							}
+						});
 			}
 		);
+		
 		$(".rubricItem.rubricUnordered, .rubricItem.rubricOrdered").prepend(
 			function()
 			{
-				return createCheckBox(this);
+				return $("<input>")
+						.prop(
+							{
+									type:"checkbox",
+									name:"chk" + $(this).prop("id"),
+									id: "chk" + $(this).prop("id")
+							})
+						.change(function()
+						{
+							if (selectedSelection != null)
+							{
+								var selection = $("#" + selectedSelection);
+								var checkedItems = [];
+				
+								if (selection.data("checks"))
+								{
+									checkedItems = selection.data("checks");
+								}
+								if (this.checked)
+								{
+									checkedItems.push($(this).prop("id"));
+								}
+								else
+								{
+									var valueToFind = $(this).prop("id");
+									var itemToRemove = 0;
+									$.each(checkedItems, function(i, val)
+									{
+										if (val == valueToFind)
+										{
+											itemToRemove = i;
+										}
+									});
+									checkedItems.splice(itemToRemove,1);
+								}
+								selection.data("checks",  checkedItems);
+							}
+						}
+				);
 			}
 		);
-		$("#slider").slideReveal("show");
+	
+	$("#slider").stop().animate(
+		{"margin-right":"-800px"}, 1000);
+		
 }
-
-function createRadioButton(item)
-{
-	return $("<input>")
-		.attr(
-			{
-					type:"radio",
-					name: "radioSelection",
-					id: "rdb" + $(item).attr("id"),
-			})
-		/*.change(function()
-		{
-			if (selectedSelection != null)
-			{
-				var selection = $("#" + selectedSelection);
-				var checkedItems = [];
-
-				if (selection.data("checks"))
-				{
-					checkedItems = selection.data("checks");
-				}
-				if (this.checked)
-				{
-					checkedItems.push($(this).attr("id"));
-				}
-				else
-				{
-					var valueToFind = $(this).attr("id");
-					var itemToRemove = 0;
-					$.each(checkedItems, function(i, val)
-					{
-						if (val == valueToFind)
-						{
-							itemToRemove = i;
-						}
-					});
-					checkedItems.splice(itemToRemove,1);
-				}
-				selection.data("checks",  checkedItems);
-			}
-		})*/;
-}
-
-/* Appends a check box to every item in the rubric */
-function createCheckBox(item)
-{
-	return $("<input>")
-		.attr(
-			{
-					type:"checkbox",
-					name:"chk" + $(item).attr("id"),
-					value:"chk" + $(item).attr("id"),
-					id: "chk" + $(item).attr("id")
-			})
-		.change(function()
-		{
-			if (selectedSelection != null)
-			{
-				var selection = $("#" + selectedSelection);
-				var checkedItems = [];
-
-				if (selection.data("checks"))
-				{
-					checkedItems = selection.data("checks");
-				}
-				if (this.checked)
-				{
-					checkedItems.push($(this).attr("id"));
-				}
-				else
-				{
-					var valueToFind = $(this).attr("id");
-					var itemToRemove = 0;
-					$.each(checkedItems, function(i, val)
-					{
-						if (val == valueToFind)
-						{
-							itemToRemove = i;
-						}
-					});
-					checkedItems.splice(itemToRemove,1);
-				}
-				selection.data("checks",  checkedItems);
-			}
-		});
-	}
 
 /**
  * @description Creates the spinner control
@@ -567,12 +585,13 @@ function addSelection()
 		"opacity": currentOpacity,
 		"page": inputPage.val(),
 		"checks": [],
+		"radio":"",
 		"posIni": {
 			"left": pdfContainer.position().left,
 			"top": pdfContainer.position().top
 		},
 		height: 400,
-		width: 300,
+		width: 350,
 		"comments":"",
 		"windowLocked":"off",
 		"selectionCounter":selectionCounter,
@@ -581,7 +600,10 @@ function addSelection()
 
 	}
 
-/* Creates buttons bar for a selection */
+/**
+ * Creates buttons bar for a selection
+ * @param {*} value 
+ */
 function createButtonsBar(value)
 {
 	var iconSelectedInitial;
@@ -591,21 +613,22 @@ function createButtonsBar(value)
 		iconSelectedInitial = "ui-icon-unlocked";
 	}
 	return $("<div>").append($("<input>")
-					.attr("id", value.id + "colorPicker")
-					.attr("type", "color")
+					.prop("id", value.id + "colorPicker")
+					.prop("type", "color")
 					.addClass("leftPos")
 					.css(
 						{    
 							"padding":"0.1em",
 							"width":"2em",
 							"height":"2em"}
-					)
+						)
 					.val(rgb2hex(value.backgroundColor))
 					.button()
 						.on("input", function(e){
-							$("#" + value.id).css("background-color", $(this).val());
+							var buttonItem = $("#" + value.id);
+							buttonItem.css("background-color", $(this).val());
 							currentColor = $(this).val();
-							$("#" + value.id).data("backgroundColor",$("#" + value.id).css("background-color")	);
+							buttonItem.data("backgroundColor",buttonItem.css("background-color")	);
 						}))
 				.append($("<button>")
 					.createToolBarButton("Connect", "ui-icon-tag")
@@ -613,7 +636,8 @@ function createButtonsBar(value)
 					.click(
 						function()
 						{
-							$("#slider").slideReveal("show");
+							sliderMovement(false);
+							blnSliderShowed = true;
 						}))
 				.append($("<button>")
 					.createToolBarButton("Block/Unblock", iconSelectedInitial)
@@ -638,7 +662,7 @@ function createButtonsBar(value)
 								 .draggable({disabled:newStatus})
 								 .resizable({disabled:newStatus});
 						}))
-			.append(addQualification(value).addClass("leftPos"))
+			.append($("<input>").addClass("spinnerQualification").prop("type","text").addClass("leftPos"))
 			.append($("<button>")
 				.createToolBarButton("Close", "ui-icon-close")
 				.addClass("rightPos")
@@ -666,7 +690,7 @@ function createButtonsBar(value)
  */
 function createSlider(value){
 
-	return ($("<div>").css({width: "5em","marginRight":"1.2em", "marginTop":"0.3em"})
+	return ($("<div>")
 	.slider({
 		max: 1,
 		min: 0.30,
@@ -679,30 +703,25 @@ function createSlider(value){
 				opacity: ui.value
 			})
 		}
-	})
+	}).addClass("sliderClass")
 	);
 
 }
 
 /**
- * @description Creates a slider
+ * @description Aux Function to convert rgb color to hex format
+ * @param x: Number to convert 
  */
-function addQualification(item){
-
-	return $("<input>").addClass("spinnerQualification").attr("type","text");
-	
-}
-
-/* Aux Function to convert rgb color to hex format */
 function ToHex(x) {
 	var hexDigits =["0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"]; 
 	  return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
 }
 
-/* Function to convert rgb color to hex format */
+/**
+ * Function to convert rgb color to hex format
+ * @param {*} rgb: rgb color
+ */
 function rgb2hex(rgb) {
 	rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
 	return "#" + ToHex(rgb[1]) + ToHex(rgb[2]) + ToHex(rgb[3]);
 }
-	
-
