@@ -1,18 +1,33 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <link rel="stylesheet" href="./css/styles.css"/>
   
   <script src="./ext/jquery-3.3.1.min.js"></script>
   <script src="https://cloud.tinymce.com/5/tinymce.min.js?apiKey=cki3lrfy95jh7vidpnmm6sjtemgnevnpzcdjixitnir9fi0d"></script>
   <script type="text/javascript" src="./js/rubriceditor.js"></script>
 
+  <link rel="stylesheet" href="./ext/jquery-ui.css">
+  <link rel="stylesheet" href="./ext/jquery-ui.theme.css"/>
+  <script src="./ext/jquery-ui.min.js"></script>
+
 
 </head>
 <body>
-<textarea id="textEditor"></textarea>
-  <button id="btnSaveRubric">Guardar Rúbrica</button>
+  	<div id="dialogSelections" title="Selección de selecciones" style="display:none">
+    </div>
+    <div id="dialogExistingRubric" title="Rúbrica ya existente" style="display:none">
+      <div>Ya existe una rúbrica con este nombre, ¿la quiere sustituir?</div>
+    </div>
+    <div id="dialogDeleteRubric" title="Borrado de Rúbrica" style="display:none">
+      <div>¿Está seguro de querer eliminar la rúbrica?</div>
+    </div>
+    <div id="dialogNewRubric" title="Nueva rúbrica" style="display:none">
+        <input type="text" id="newRubricName"/>
+    </div>
+    
+    <textarea id="textEditor"></textarea>
 </body>
 </html>
 
