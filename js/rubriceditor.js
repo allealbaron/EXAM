@@ -1,8 +1,7 @@
 ﻿/** Global variables */
 var rubricsList = [];
 var currentRubric = null;
-var listCounter = 0;
-var questionCounter = 0;
+var globalCounter = 0;
 
 /**
  * ready function
@@ -22,11 +21,27 @@ $(document).ready(function(){
  */
 function setEditor(){
 
+  tinymce.PluginManager.add('addQualificationNumber', function (editor) {
+    editor.ui.registry.addMenuItem('addqmenu', {
+      icon: 'info',
+      text: 'Establecer calificación',
+      onAction: function () {            
+        setQualification(editor);
+    }});
+  
+    editor.ui.registry.addContextMenu('addqmenu', {
+      update: function (element) {
+        return (element.tagName.toLowerCase() != "h3") ? '' : 'addqmenu';
+      }
+    });
+  });
+
   tinymce.init({
     language_url: "./js/es.js",
     language: "es",
     spellchecker_language: "es",
     selector: "#textEditor",
+    contextmenu: "addqmenu",
     menu: {
       file: {title: "File", items: "newdocumentCustom opendocument savedocument deletedocument"},
       edit: {title: "Edit", items: "undo redo | cut copy paste pastetext | selectall"},
@@ -36,8 +51,8 @@ function setEditor(){
       table: {title: "Table", items: "inserttable tableprops deletetable | cell row column"},
       tools: {title: "Tools", items: "spellchecker code"}
     },
-    toolbar: "newdocumentCustom opendocument savedocument deletedocument | addPregunta addListaDesordenada AddListaOrdenada | bold italic strikethrough forecolor backcolor link | table | outdent indent | alignleft aligncenter alignright alignjustify  | code removeformat ",
-    plugins: "code print preview fullpage searchreplace autoresize autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime lists wordcount imagetools textpattern help",
+    toolbar: "newdocumentCustom opendocument savedocument deletedocument | addPregunta addListaDesordenada AddListaOrdenada setQualification | bold italic strikethrough forecolor backcolor link | table | outdent indent | alignleft aligncenter alignright alignjustify  | code removeformat ",
+    plugins: "addQualificationNumber code print preview fullpage searchreplace autoresize autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime lists wordcount imagetools textpattern help",
     style_formats: [
       {title: "Pregunta", block: "h3", classes: "rubricItem rubricQuestion"},
       {title: "Subapartado", block: "h4", classes: "rubricItem rubricSection"},
@@ -48,12 +63,17 @@ function setEditor(){
     content_css: [
       "//fonts.googleapis.com/css?family=Lato:300,300i,400,400i",
       "//www.tiny.cloud/css/codepen.min.css"],
-
     setup: function (editor) {
 
       addCustomMenuItems(editor);
 
       addCustomButtons(editor);
+
+      editor.on("change", function(e) {
+
+        drawTable();
+
+    });
    
   }  
 })
@@ -136,30 +156,37 @@ function addCustomButtons(editor)
       var itemSelected = editor.selection.getNode();
       if (itemSelected.tagName.toLowerCase() != "h3")
       {
-        tinymce.DOM.addClass(itemSelected, "rubricItem rubricQuestion");
-        if (tinymce.DOM.getAttrib(itemSelected, "id", "") == "")
+        if (itemSelected.tagName.toLowerCase() != "body"){
+        var newItem = $("<p>");
+        var twoItems = false;
+        $(itemSelected).find("p").each(function(){
+            newItem.append($("<h3>")
+                    .addClass("rubricItem rubricQuestion")
+                    .text($(this).text()));
+                    twoItems = true;
+        });
+        if (!twoItems)
         {
-          tinymce.DOM.setAttrib(itemSelected, "id", getNextQuestionId());
-        }            
+          newItem.append($("<h3>")
+          .addClass("rubricItem rubricQuestion")
+          .text($(itemSelected).text()));
+        }
+        tinymce.activeEditor.selection.setContent(newItem.html());
+      }
+      else
+      {
+        alert("Seleccione los elementos de uno en uno");
+      }
       }
       else
       {
         tinymce.DOM.removeClass(itemSelected, "rubricItem rubricQuestion");
+        tinyMCE.execCommand("formatblock", false, "h3");
       }
-      tinyMCE.execCommand("formatblock", false, "h3");
+      reArrangeIds();
+      drawTable();
     }
   });
-
-/*
-  editor.ui.registry.addButton("addSubApartado", { 
-    tooltip: "Subapartado",
-    icon: "comment-add",   
-    onAction: function () {
-      tinyMCE.execCommand("formatblock", false, "h4");
-      tinymce.DOM.addClass(editor.selection.getNode(), "rubricItem rubricQuestion");
-    }
-  });
-*/
 
   editor.ui.registry.addButton("addListaOrdenada", { 
     tooltip: "Lista ordenada",
@@ -183,7 +210,6 @@ function addCustomButtons(editor)
     tooltip: "Lista desordenada",
     icon: "unordered-list",
     onAction: function () {
-
       tinyMCE.execCommand("InsertUnorderedList", false);
       var itemSelected = editor.selection.getNode();
       var listId = getNextListId();
@@ -195,6 +221,19 @@ function addCustomButtons(editor)
           $(element).attr("id", getNextListItemId(listId));
         });
       }});
+
+  editor.ui.registry.addButton("setQualification", {
+    tooltip: "Establecer calificación",
+    icon: "info",
+    onAction: function () {
+      if (editor.selection.getNode().tagName.toLowerCase() == "h3"){
+        setQualification(editor);
+      }
+      else{
+        alert("Sólo se pueden poner calificaciones a las preguntas");
+      };
+    }});
+
 }
 
 /**
@@ -204,11 +243,12 @@ function getNextQuestionId()
 {
   var exitCondition = false;
   var literal = "rubricQuestion";
-  var counter = 0;
+  var counter = globalCounter;
   while (!exitCondition)
   {
     if ($("#textEditor_ifr").contents().find("#" + literal + counter).length == 0)
     {
+      globalCounter++;
       exitCondition = true;
     }
     counter++;  
@@ -410,6 +450,7 @@ function openDocument(deleteEnabled)
           createRubric(selectedItem.data("id"),selectedItem.data("rubric"));
           tinymce.activeEditor.setContent(selectedItem.data("rubric"));
           tinymce.activeEditor.getBody().setAttribute("contenteditable", true);
+          drawTable();
           $(this).dialog("close");    	
 			  }
 			  else
@@ -475,52 +516,46 @@ function saveDocument()
 }
 
 /**
+ * Rearrange ids in case any id is duplicated
+ */
+function reArrangeIds()
+{
+  var completeList = $(tinymce.activeEditor.dom.select("h3"));
+    completeList.each(function(){
+    if ($(this).text()== "")
+    {
+      $(this).remove();
+    }
+    else{    
+      if ($(this).attr("id") == null)
+      {
+        $(this).attr("id", getNextQuestionId()).addClass("rubricItem rubricQuestion");
+      }
+      else
+      {
+        var ids = $(tinymce.activeEditor.dom.select("[id='"+ $(this).attr("id") + "']"));
+        if(ids.length>1)
+        {
+          $(tinymce.activeEditor.dom.select("[id='"+ $(this).attr("id") + "']:gt(0)")).each(function(){
+            $(this).attr("id", getNextQuestionId()).addClass("rubricItem rubricQuestion");
+          })
+        }
+        }
+      }});
+
+}
+
+/**
  * Saves rubric item
  */
 function saveRubric()
 {  
-  currentRubric.rubric = $("<div>").append($(tinymce.activeEditor.getContent({format : "raw"})));
 
-  /*
-  $.each(currentRubric.rubric.find(".rubricQuestion"), 
-  function(index, element)
-  {
-    $(element).attr("id", "rubricQuestion" + index);
-  });
+  reArrangeIds();
 
-  $.each(currentRubric.rubric.find(".rubricSection"), 
-  function(index, element)
-  {
-    $(element).attr("id", "rubricSection" + index);
-  });
-
-  $.each(currentRubric.rubric.find("ul"), function(index, element)
-  {
-    $(element).attr("id", "rubricUnordered" + index)
-              .children().each(
-                function(indexLi, elementLi)
-                {
-                  $(elementLi)
-                  .attr("id", "rubricUnordered" + index + "rubricSection" + indexLi)
-                  .addClass("rubricUnordered rubricItem");
-                }
-              );
-  });
-
-  $.each(currentRubric.rubric.find("ol"), function(index, element)
-  {
-    $(element).attr("id", "rubricOrdered" + index)
-              .children().each(
-                function(indexLi, elementLi)
-                {
-                  $(elementLi)
-                  .attr("id", "rubricordered" + index + "rubricSection" + indexLi)
-                  .addClass("rubricOrdered rubricItem");
-                }
-              );
-  });
-  */
+  currentRubric.rubric = $("<div>").append($(tinymce.activeEditor.getContent({format : "raw"}, "text/html")));
   currentRubric.rubric = currentRubric.rubric.html();
+
 }
 
 /**
@@ -542,4 +577,55 @@ function loadRubrics()
 	});
   $("#dialogSelections").empty();
 	$("#dialogSelections").append(sel);
+}
+
+/**
+ * Draws table with current qualifications
+ */
+function drawTable(){
+  $("#qualificationsTable").css({"display":"block"});
+  $("#qualificationsTable").find("tr:gt(0)").remove();
+  var domparser = new DOMParser();
+  $.each(
+    $(domparser.parseFromString(tinymce.activeEditor.getContent({format : "raw"}), "text/html")).find(".rubricQuestion"), 
+  function(index, element){
+    var classNameTable = "odd";
+    if (index%2==0)
+    {
+      classNameTable = "even";
+    }
+    $("#qualificationsTable").append(
+      $("<tr>")
+      .append($("<td>").text($(element).text()).addClass(classNameTable))
+      .append($("<td>").text($(element).attr("title")).addClass(classNameTable)));
+  });
+
+}
+
+/**
+ * sets qualification for a selected item
+ * @param {*} editor 
+ */
+function setQualification(editor){
+  var nodeSelected = $(editor.selection.getNode());
+       $("#qualificationNumber").val(nodeSelected.attr("title"));
+       $("#dialogQualification").dialog({
+        buttons:{
+          "Aceptar": function(){
+              if ($("#qualificationNumber").val()>100 || $("#qualificationNumber").val()<0)
+              {
+                alert("El valor debe estar entre 1 y 100");
+              }
+              else
+              {
+                $(editor.selection.getNode()).attr("title", $("#qualificationNumber").val());
+                reArrangeIds();
+                drawTable();              
+                $(this).dialog("close");
+              }
+            },
+          "Cancelar":function(){
+              $(this).dialog("close");
+            }    
+          }});
 }

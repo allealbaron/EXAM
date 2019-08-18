@@ -15,9 +15,8 @@
 	  
    </head>
    <body>
-
 		<div id="slider2" class="rubricPanel" style="display:none">
-			<a href="./RubricEditor.html" target="_blank">Access to Rubric Editor</a>
+			<a href="./RubricEditor.html" target="_blank">Acceso al editor de rúbricas</a>
 			<div class="handle" id="rubricPanelHandle">
 				<span id="handleArrow" style="left:-40;position:absolute;padding:10px;cursor: pointer;width:20px;">&lArr;</span>
 			</div>
@@ -30,18 +29,20 @@
 			<div class="nav-btn" id="pull">
 				<img id="pullimg" src="ext/images/leftArrow.png" alt="open" />
 			</div>
+			<div id="sliderBody"></div>
 		</div>
 
    <div id="maindiv">
    	<h1>Corrector de exámenes</h1>
-		<div id="toolbar" >
+		<div id="toolbar" style="display:none" >
 			<input  id="inputPage" class="btn"/>
 			<button id="addIcon"></button>
+			<button id="newIcon"></button>
 			<button id="loadIcon"></button>
 			<button id="saveIcon"></button>
 			<button id="zoomInIcon"></button>
 			<button id="zoomOutIcon"></button>
-			<button id="showRubric"></button>
+			<button id="showRubric" style="display:none"></button>
 		</div>
 		<div id="pageContainer" class="marginated" style="position:relative">
 			<div>
@@ -51,8 +52,45 @@
 		</div>
 		<div id="selectionsContainer" class="marginated"></div>
 	</div>
-	<div id="dialog" title="Borrado de selección" style="display:none">
+	<div id="dialogLoadFile" title="Carga de fichero PDF" style="display:none">
+		<label for="fileInput" class="inputfileLabel">Elige un fichero</label>
+		<input id="fileInput" type="file" accept=".pdf" class="clear inputfile" />
+		<input id="fileName" type="text" class="clear" />
+		<p></p>
+		<label for="yearSelected">Año</label>
+		<select id="yearSelected">
+		</select>
+		<label for="convocatorySelected">Convocatoria</label>
+		<select id="convocatorySelected">
+			<option value="10">Febrero (1º)</option>
+			<option value="11">Febrero (2º)</option>
+			<option value="12">Febrero (Extra)</option>
+			<option value="20">Junio (1º)</option>
+			<option value="21">Junio (2º)</option>
+			<option value="22">Junio (Extra)</option>
+			<option value="30">Septiembre (1º)</option>
+			<option value="32">Septiembre (Extra)</option>
+		</select>
+		<p></p>
+		<label for="subjectSelected">Asignatura</label>
+		<select id="subjectSelected">
+			<option value="71023051">Procesamiento Paralelo</option>
+			<option value="71904018">Ética y Legislación</option>
+		</select>
+	</div>
+	<div id="dialogDeleteSelection" title="Borrado de selección" style="display:none">
 		¿Estás seguro de querer borrar esta selección?
 	</div>
+	<div id="dialogCorrections" title="Selección de correcciones" style="display:none">
+	</div>
+	<div id="dialogNewCorrection" title="Nueva corrección" style="display:none">
+		<input type="text" id="newCorrectionName"/>
+	</div>
+	<div id="dialogRubrics" title="Seleccionar rúbrica" style="display:none">
+	</div>
+	<div id="dialogDeleteCorrection" title="Borrado de Corrección" style="display:none">
+		<div>¿Está seguro de querer eliminar la corrección?</div>
+	  </div>
+  
    </body>
  </html>
